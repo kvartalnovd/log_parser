@@ -22,13 +22,15 @@
     cd log_parser
     ```
 Вы можете запустить программу написанную одним скриптом:
-    ```bash
-    php onefile_parser.php access_log
-    ```
+
+```bash
+php onefile_parser.php access_log
+```
 Или написанную с использованием ООП:
-    ```bash
-    php main.php access_log
-    ```
+
+```bash
+php main.php access_log
+```
 
 > Они одинаковы, но написаны в разных стилях
 
