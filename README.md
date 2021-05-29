@@ -17,10 +17,12 @@
 # Запуск
 > Для запуска вам потребуется PHP!
 Клонируйте репозиторий при помощи git и перейдите в папку:
-    ```bash
-    git clone https://github.com/kvartalnovd/log_parser.git
-    cd log_parser
-    ```
+
+```bash
+git clone https://github.com/kvartalnovd/log_parser.git
+cd log_parser
+```
+
 Вы можете запустить программу написанную одним скриптом:
 
 ```bash
