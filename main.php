@@ -7,11 +7,10 @@ require 'parser.php';
 class Main {
 
 	public $parser;
-	public $unique_urls;
+	public $unique_status_codes;
 	public $traffic;
 	public $views; 
 	public $status_codes;
-	public $crawlers;
 	public $logfile;
 
     function __construct() {
