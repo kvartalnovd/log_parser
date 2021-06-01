@@ -8,17 +8,19 @@ class Main {
 
 	public $parser;
 	public $unique_status_codes;
+	public $unique_urls;
 	public $traffic;
 	public $views; 
 	public $status_codes;
 	public $logfile;
+	public $logfile_count;
 
     function __construct() {
 
     	// Вызывем функцию проверки аргументов
     	$this->checking_argc();
 
-    	// Вводим начальные данные
+    	// Объявляем начальные данные
     	$this->parser = new Parser();
 		$this->unique_urls = array();
 		$this->traffic = 0;
@@ -59,7 +61,7 @@ class Main {
 				$log = fgets($this->logfile);
 				
 				if ($log == 0) {
-					// Строка пустая, пропускаем
+					// Строка пустая, лога нет, переходим к следующей строке
 					$empty_rows_number++;
 					continue;
 				}
@@ -67,16 +69,22 @@ class Main {
 				// Находим IP-адрес клиента
 				$client_ip = $this->parser->IPSearch($log);
 
-				// Находим url
-				$urls[] = $this->parser->UrlSearch($log);
+				// URL-источник запроса - Referer запроса;
+				$referer = $this->parser->RefererSearch($log);
 
 				// Получаем информацию о запросе: тип запроса, его содержимое и код ответа
 				$request_info = $this->parser->RequestParsing($log);
+				// print_r($request_info);
 
 				// Разбираем массив на части запроса
 				$request_method = $request_info[0]; // Метод запроса
+				$request_url = $request_info[1]; // URL запроса
+				$protocol_HTTP = $request_info[2]; // протокол HTTP запроса
 				$status_code = $request_info[3]; // код состояния HTTP
 				$received_bytes_number = $request_info[4]; // Количество отданных сервером байт;
+
+				// Сохраняем данные URL-запроса
+				$urls[] = $request_url;
 
 				if (!array_key_exists($status_code, $status_codes)) {
 					// В массиве кодов ответов запроса нет полученного в данном логе кода, объявляем его, чтобы избежать ошибки
@@ -86,10 +94,12 @@ class Main {
 				// Сохраняем данные кода ответа в массив
 				$status_codes[$status_code]++;
 
-				// Сохраняем данные трафика
-				$this->traffic += $received_bytes_number;
+				if ($status_code === "200") {
+					// Сохраняем данные трафика, Если статус запроса: 200 OK — успешный запрос
+					$this->traffic += $received_bytes_number;
+				}
 
-				// Разбираем UserAgent и ищем поисковых роботов
+				// Находим / разбираем UserAgent и ищем поисковых роботов
 				$this->parser->UserAgentParsing($log);
 
 			}
@@ -100,9 +110,10 @@ class Main {
 			// Получаем массив только уникальных ссылок
 			$this->unique_urls = array_unique($urls);
 
-			 // Получаем кол-во просмотров
+			// Получаем кол-во просмотров
 			$this->views = $this->logfile_count - $empty_rows_number;
 
+			// Выводим в консоль результат обработки логов
 			$this->show_result();
 
 			// Работа с лог-файлом закончена, закрываем файл
@@ -133,7 +144,7 @@ class Main {
 
 		// Определяем число строк в лог-файле
 		$this->logfile_count = count(file(ACCESS_LOG_PATH));
-		echo " - Количество строк в лог-файле: ".$this->logfile_count ."\n\n";
+		echo " - Количество строк в лог-файле: ".$this->logfile_count."\n\n";
 	}
 
 	public function close_logfile() {
@@ -168,7 +179,7 @@ class Main {
 			"statusCodes" => $this->unique_status_codes
 		);
 
-		echo  "Результат в формате JSON:\n".json_encode($logs_statistics, JSON_PRETTY_PRINT)."\n";
+		echo "Результат в формате JSON:\n".json_encode($logs_statistics, JSON_PRETTY_PRINT)."\n";
     }
 }
 

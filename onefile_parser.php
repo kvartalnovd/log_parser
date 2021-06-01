@@ -82,9 +82,9 @@ if (file_exists(ACCESS_LOG_PATH) and is_file(ACCESS_LOG_PATH)) {
 		$statusbar = str_repeat("█", $status); // Заполненые строки
 		$remains = str_repeat(" ", 50 - $status); // Пустые строки
 
-		// echo "   Загрузка: ".$percent."% | ".$statusbar.$remains." | ".$progress." логов обработано ";
-		// echo ($load != $logfile_count) ? "\r" : "\n";
-		// sleep(1); // Для примера добавляем ожидание 1 сек. Слишком мало логов и не видно работу статус бар
+		echo "   Загрузка: ".$percent."% | ".$statusbar.$remains." | ".$progress." логов обработано ";
+		echo ($load != $logfile_count) ? "\r" : "\n";
+		sleep(1); // Для примера добавляем ожидание 1 сек. Слишком мало логов и не видно работу статус бар
 
 		// Обрабатываем каждую строку файла как лог
 		$log = fgets($logfile);
@@ -103,7 +103,6 @@ if (file_exists(ACCESS_LOG_PATH) and is_file(ACCESS_LOG_PATH)) {
 		// Находим url с помощью регулярного выражения
 		$url_regex = '/(http|https|ftp):\/\/[a-z0-9_-]+(\.[a-z0-9_-]+)*\.[a-z]{2,5}\/[^"]*/';
 		preg_match($url_regex, $log, $client_url);
-		$urls[] = $client_url[0];
 		
 		// Получаем информацию о запросе: тип запроса, его содержимое и код ответа
 		$request_info_regex = '/"(GET|POST).+(HTTP\/1.1|HTTP\/1.0)" \w{3} \w+/'; // 
@@ -114,6 +113,8 @@ if (file_exists(ACCESS_LOG_PATH) and is_file(ACCESS_LOG_PATH)) {
 
 		// Разбираем массив на части запроса
 		$request_method = $request_info[0]; // Метод запроса
+		$request_url = $request_info[1]; // URL запроса
+		$protocol_HTTP = $request_info[2]; // протокол HTTP запроса
 		$status_code = $request_info[3]; // код состояния HTTP
 		$received_bytes_number = $request_info[4]; // Количество отданных сервером байт;
 
@@ -122,11 +123,17 @@ if (file_exists(ACCESS_LOG_PATH) and is_file(ACCESS_LOG_PATH)) {
 			$status_codes[$status_code] = 0;
 		}
 
+		// Сохраняем данные URL-запроса
+		$urls[] = $request_url;
+
 		// Сохраняем данные кода ответа в массив
 		$status_codes[$status_code]++;
 
 		// Сохраняем данные трафика
-		$traffic += $received_bytes_number;
+		if ($status_code === "200") {
+			// Сохраняем данные трафика, Если статус запроса: 200 OK — успешный запрос
+			$traffic += $received_bytes_number;
+		}
 
 		// Получаем User-Agent
 		$user_agent = str_replace('"', '', explode('" "', $log)[1]);

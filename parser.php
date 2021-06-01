@@ -5,6 +5,9 @@ namespace core;
 
 class Parser {
 
+	public $spiderbots;
+	public $crawlers;
+
 	function __construct() {
 		// Вытягиваем конфиг с поисковыми роботами различных поисковых систем
 		$this->spiderbots = require 'spiderbots_config.php';
@@ -19,8 +22,8 @@ class Parser {
 		return $found_IPs[0];
 	}
 
-	public function UrlSearch($log) {
-		// Функция поиска url с помощью регулярного выражения
+	public function RefererSearch($log) {
+		// Функция поиска URL-источника запроса с помощью регулярного выражения
 		$url_regex = '/(http|https|ftp):\/\/[a-z0-9_-]+(\.[a-z0-9_-]+)*\.[a-z]{2,5}\/[^"]*/';
 		preg_match($url_regex, $log, $client_url);
 
@@ -31,7 +34,7 @@ class Parser {
 		// Функция поиска и разбора запроса из лога
 
 		// Получаем информацию о запросе: тип запроса, его содержимое и код ответа
-		$request_info_regex = '/"(GET|POST).+(HTTP\/1.1|HTTP\/1.0)" \w{3} \w+/'; // 
+		$request_info_regex = '/"(GET|POST).+(HTTP\/0.9|HTTP\/1.0|HTTP\/1.1|HTTP\/2|HTTP\/3)" \w{3} \w+/'; // 
 		preg_match($request_info_regex, $log, $found_request_info);
 
 		// Удаляем из полученной строки кавычки и делим по пробелам, получаем все нужные данные о запросе в виде массива
